@@ -3,7 +3,7 @@ import "./globals.css";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? process.env.URL ?? "http://localhost:3000"),
   title: { default: `${site.name} | ${site.role}`, template: `%s | ${site.name}` },
   description: site.intro,
   openGraph: { title: `${site.name} | ${site.role}`, description: site.intro, type: "website" },
