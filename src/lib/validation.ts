@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+// A full link (Cloudinary) or an image stored on this site via Netlify Blobs.
+const imageUrl = (message?: string) =>
+  z.string().refine((v) => /^\/api\/images\/[\w.-]+$/.test(v) || z.string().url().safeParse(v).success, message);
+
 const optionalUrl = z.string().trim().url("Enter a full link, starting with https://").or(z.literal("")).optional();
 
 export const projectSchema = z.object({
@@ -7,8 +11,8 @@ export const projectSchema = z.object({
   category: z.enum(["GRAPHIC_DESIGN", "WEB_DEVELOPMENT"], { message: "Choose a category" }),
   summary: z.string().trim().min(10, "Write at least 10 characters").max(220, "Keep the summary under 220 characters"),
   description: z.string().trim().min(30, "Describe the project in at least 30 characters").max(10000),
-  coverImage: z.string().url("Upload a cover image"),
-  images: z.array(z.string().url()).max(20, "Up to 20 extra images").default([]),
+  coverImage: imageUrl("Upload a cover image"),
+  images: z.array(imageUrl()).max(20, "Up to 20 extra images").default([]),
   tags: z.array(z.string().trim().min(1).max(30)).max(15, "Up to 15 tags").default([]),
   liveUrl: optionalUrl,
   repoUrl: optionalUrl,
