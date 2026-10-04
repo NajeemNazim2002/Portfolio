@@ -13,11 +13,22 @@ type Props = {
 };
 
 const MAX_MB = 10; // Cloudinary's free plan limit per image
+const BLOBS_MAX_MB = 5; // limit when storing on Netlify Blobs (no Cloudinary)
 
 async function uploadOne(file: File): Promise<string> {
   const sigRes = await fetch("/api/admin/upload-signature", { method: "POST" });
-  if (!sigRes.ok) throw new Error("Couldn't start the upload. Check your Cloudinary settings.");
+  if (!sigRes.ok) throw new Error(sigRes.status === 401 ? "Please sign in again." : "Couldn't start the upload.");
   const sig = await sigRes.json();
+
+  if (sig.provider === "blobs") {
+    if (file.size > BLOBS_MAX_MB * 1024 * 1024) throw new Error(`${file.name} is over ${BLOBS_MAX_MB} MB.`);
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error || `Upload failed for ${file.name}.`);
+    return json.url as string;
+  }
 
   const fd = new FormData();
   fd.append("file", file);
